@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { expectedLatestRound, type DrawsResult } from "../lotto/draws";
+import { expectedLatestRound, isPending, type DrawsResult } from "../lotto/draws";
 import { formatWon } from "../lotto/rank";
 import { Ball } from "./Ball";
 
@@ -51,7 +51,11 @@ export function WinCheck({ data, error, round, onRound }: Props) {
           </div>
           <p className="note">
             {draw.date} 추첨 ·{" "}
-            {draw.firstWinners ? `1등 ${draw.firstWinners}명 · 1인당 ${formatWon(draw.firstPrize)}` : "1등 없음 (이월)"}
+            {isPending(draw)
+              ? "당첨금은 아직 집계 중이에요"
+              : draw.firstWinners
+                ? `1등 ${draw.firstWinners}명 · 1인당 ${formatWon(draw.firstPrize)}`
+                : "1등 없음 (이월)"}
           </p>
         </>
       )}

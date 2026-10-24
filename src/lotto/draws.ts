@@ -44,6 +44,13 @@ const WEEK = 7 * 24 * 3600 * 1000;
 /** 추첨 후 결과가 올라오기까지 여유 시간 */
 const PUBLISH_DELAY = 30 * 60 * 1000;
 
+const DAY = 24 * 3600 * 1000;
+
+/** 추첨 직후엔 번호만 나오고 당첨자·당첨금은 아직 0 이다 (집계 중).
+ *  5회처럼 실제로 1·2등이 모두 없던 옛 회차와 구별하려고 최근 30일 안의 회차만 집계 중으로 본다 */
+export const isPending = (d: Draw, now = Date.now()) =>
+  !(d.firstWinners || d.firstPrize || d.secondWinners || d.secondPrize) && now - Date.parse(d.date) < 30 * DAY;
+
 /** 지금 시점에 결과가 나와 있어야 할 마지막 회차 */
 export const expectedLatestRound = (now = Date.now()) => Math.floor((now - FIRST_DRAW - PUBLISH_DELAY) / WEEK) + 1;
 
@@ -99,14 +106,18 @@ export async function loadDraws(): Promise<DrawsResult> {
   const expected = expectedLatestRound();
   const checkedAt = readStored<number>(CHECKED_KEY, 0);
 
-  if (expected > latest && Date.now() - checkedAt > RECHECK_MS) {
+  // 새 회차가 나왔을 시간이거나, 최신 회차 당첨금이 아직 집계 중이면 API 로 다시 확인
+  const pending = isPending(draws.get(latest)!);
+  if ((expected > latest || pending) && Date.now() - checkedAt > RECHECK_MS) {
     try {
       // center 조회는 요청 회차보다 3~4회 뒤까지 함께 돌려준다
-      const fresh = (await fetchFromApi(latest + 1)).filter((d) => d.round > latest);
+      const from = pending ? latest : latest + 1;
+      const fresh = (await fetchFromApi(from)).filter((d) => d.round >= from);
       writeStored(CHECKED_KEY, Date.now());
       if (fresh.length) {
         for (const d of fresh) draws.set(d.round, d);
-        const known = new Set(json.draws.map((r) => r[0]));
+        // JSON 에 완성된 상태로 있는 회차만 빼고 보관 (집계 중이던 회차의 완성본은 보관해야 다시 안 부른다)
+        const known = new Set(json.draws.map(fromRow).filter((d) => !isPending(d)).map((d) => d.round));
         writeStored(
           EXTRA_KEY,
           [...draws.values()].filter((d) => !known.has(d.round)),

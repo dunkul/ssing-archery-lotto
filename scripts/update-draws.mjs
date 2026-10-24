@@ -10,6 +10,11 @@ const API = "https://www.dhlottery.co.kr/lt645/selectPstLt645InfoNew.do";
 const FIRST_DRAW = Date.UTC(2002, 11, 7, 11, 45); // 1회 추첨: 2002-12-07 20:45 KST
 const WEEK = 7 * 24 * 3600 * 1000;
 const DELAY_MS = 150;
+const DAY = 24 * 3600 * 1000;
+
+/** 추첨 직후엔 번호만 나오고 당첨자·당첨금은 0 이다. 최근 30일 안에 그런 줄은 집계 중으로 보고 다시 받는다
+ *  (5회처럼 실제로 1·2등이 모두 없던 옛 회차와 구별하기 위해 날짜를 함께 본다) */
+const isPending = (r) => r[9] + r[10] + r[11] + r[12] === 0 && Date.now() - Date.parse(r[1]) < 30 * DAY;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -48,7 +53,7 @@ async function load() {
 
 async function main() {
   // 예전 형식(칸이 모자란) 줄은 다시 받는다
-  const rows = new Map((await load()).filter((r) => r.length === ROW_LENGTH).map((r) => [r[0], r]));
+  const rows = new Map((await load()).filter((r) => r.length === ROW_LENGTH && !isPending(r)).map((r) => [r[0], r]));
   const before = rows.size;
 
   // 최신 회차: 날짜로 어림한 회차 근처를 조회 (center 조회는 요청 회차보다 3~4회 뒤까지 함께 돌려준다)
