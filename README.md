@@ -2,6 +2,28 @@
 
 궁수가 풍선을 맞히면 안에 숨은 로또공이 굴러 나오는 로또 번호 뽑기 게임. Vite + React + TypeScript.
 
+![직접 조준 중인 낮 화면](docs/screenshots/play-day.webp)
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/finish-night.webp" alt="밤 테마: 추첨 완료와 폭죽, 결과 코멘트"></td>
+    <td width="50%"><img src="docs/screenshots/jackpot-stage.webp" alt="역대 1등 번호가 나왔을 때의 축하 연출"><br><br><img src="docs/screenshots/jackpot-dialog.webp" alt="역대 1등 축하 창"></td>
+  </tr>
+  <tr>
+    <td align="center">밤 테마 · 폭죽 · 결과 코멘트</td>
+    <td align="center">지난 회차 1등 번호와 같을 때</td>
+  </tr>
+</table>
+
+## 기능
+
+- **활쏘기 추첨**: 풍선을 탭하면 자동 조준, 누른 채 끌면 궤적을 보며 직접 조준. 번호는 조준과 무관하게 무작위(crypto)로 정해진다.
+- **바람·낮/밤**: 바람이 풍선과 화살을 밀고, 밤에는 별·달·폭죽.
+- **결과 코멘트**: 연속 번호, 홀짝, 번호 합, 끝수, 역대 당첨번호와 겹친 개수.
+- **당첨 번호 확인**: 1회부터 최신 회차까지 실제 당첨번호로 지난 게임을 채점. 지난 회차 1·2등 번호와 같으면 축하 연출.
+- **PWA**: 홈 화면에 추가해 앱처럼 쓰고, 오프라인에서도 실행.
+- 효과음·배경음악은 음원 파일 없이 Web Audio 로 합성.
+
 ## 실행
 
 ```bash
