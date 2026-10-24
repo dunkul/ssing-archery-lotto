@@ -95,6 +95,10 @@ GitHub Pages: https://dunkul.github.io/ssing-archery-lotto/ — `.github/workflo
 `file://` 로 열면 동작하지 않는다 (ES 모듈·서비스워커).
 PWA 는 `registerType: "autoUpdate"` — 새 빌드를 올리면 다음 방문 때 자동 교체된다.
 
+SEO: `index.html` 에 메타·Open Graph·Twitter 카드·JSON-LD(WebApplication) 와 크롤러용 기본 본문(`#root` 안, React 가 덮어씀)이 있다.
+절대 주소는 `.env` 의 `VITE_SITE_URL` 을 `%VITE_SITE_URL%` 로 넣는다 — 도메인이 바뀌면 `.env` 와 `public/sitemap.xml` 을 고친다.
+공유 이미지는 `public/og-image.jpg` (1200×630). 화면이 크게 바뀌면 다시 만든다.
+
 하위 경로(`/ssing-archery-lotto/`)에서 서비스되므로:
 - 경로를 `/` 로 시작하는 절대 경로로 하드코딩하지 말 것. 런타임 fetch 는 `import.meta.env.BASE_URL` 을 붙이고,
   manifest 는 상대 경로(`start_url: "./"`), `index.html` 의 `/icons/...` 는 Vite 가 빌드 때 base 를 붙여 준다.

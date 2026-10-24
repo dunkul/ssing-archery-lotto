@@ -4,8 +4,52 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <meta name="theme-color" content="#bfe3f7" />
-    <meta name="description" content="궁수가 풍선을 맞히면 로또공이 굴러 나오는 로또 번호 뽑기 게임" />
-    <title>씽씽 활쏘기 로또</title>
+
+    <!-- 검색 -->
+    <title>씽씽 활쏘기 로또 — 활 쏘는 로또 번호 생성기</title>
+    <meta
+      name="description"
+      content="궁수가 풍선을 맞히면 로또공이 굴러 나오는 로또 번호 생성 게임. 1~45 중 6개 + 보너스 번호를 뽑고, 1회부터 최신 회차까지 실제 당첨번호로 등수를 확인해 보세요."
+    />
+    <meta name="keywords" content="로또, 로또 번호 생성기, 로또 번호 추천, 로또 당첨번호, 로또 6/45, 번호 뽑기, 활쏘기 게임" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="%VITE_SITE_URL%" />
+
+    <!-- 링크 공유 미리보기 (카카오톡·페이스북·X 등) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="씽씽 활쏘기 로또" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:url" content="%VITE_SITE_URL%" />
+    <meta property="og:title" content="씽씽 활쏘기 로또 — 활 쏘는 로또 번호 생성기" />
+    <meta property="og:description" content="궁수가 풍선을 맞히면 로또공이 굴러 나와요. 뽑은 번호를 역대 당첨번호로 채점해 보세요." />
+    <meta property="og:image" content="%VITE_SITE_URL%og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="궁수가 풍선을 조준하고, 땅에 로또공이 줄지어 있는 게임 화면" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="씽씽 활쏘기 로또 — 활 쏘는 로또 번호 생성기" />
+    <meta name="twitter:description" content="궁수가 풍선을 맞히면 로또공이 굴러 나와요. 뽑은 번호를 역대 당첨번호로 채점해 보세요." />
+    <meta name="twitter:image" content="%VITE_SITE_URL%og-image.jpg" />
+
+    <!-- 구조화 데이터: 검색엔진이 웹앱(게임)으로 인식하도록 -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "씽씽 활쏘기 로또",
+        "alternateName": "Ssing Archery Lotto",
+        "url": "%VITE_SITE_URL%",
+        "description": "궁수가 풍선을 맞히면 로또공이 굴러 나오는 로또 번호 생성 게임. 역대 당첨번호로 등수를 확인할 수 있어요.",
+        "applicationCategory": "GameApplication",
+        "genre": "캐주얼 게임",
+        "operatingSystem": "Any (웹 브라우저)",
+        "inLanguage": "ko",
+        "image": "%VITE_SITE_URL%og-image.jpg",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KRW" }
+      }
+    </script>
+
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -16,7 +60,22 @@
     />
   </head>
   <body>
-    <div id="root"></div>
+    <!-- React 가 그리기 전까지(그리고 JS 를 실행하지 않는 크롤러에게) 보이는 기본 내용 -->
+    <div id="root">
+      <div class="wrap">
+        <header>
+          <div>
+            <h1>씽씽 <span>활쏘기</span> 로또</h1>
+            <p class="sub">궁수가 풍선을 맞히면 안에 숨은 로또공이 굴러 나와요. 1~45 중 6개 + 보너스 1개.</p>
+          </div>
+        </header>
+        <p>
+          풍선을 탭하면 자동 조준, 누른 채 끌면 직접 조준해서 쏠 수 있어요. 다 뽑은 번호는 1회부터 최신 회차까지의
+          실제 로또 6/45 당첨번호로 채점되고, 지난 회차 1·2등 번호와 같으면 축하 연출이 나와요.
+        </p>
+        <noscript><p>이 게임은 JavaScript 를 켜야 플레이할 수 있어요.</p></noscript>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
