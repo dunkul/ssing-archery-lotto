@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "description": "씽씽 활쏘기 로또 — 궁수가 풍선을 쏘면 로또 번호가 굴러 나오는 웹 게임",
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "update-draws": "node scripts/update-draws.mjs",

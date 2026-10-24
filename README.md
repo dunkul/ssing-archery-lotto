@@ -39,3 +39,7 @@ src/
 scripts/update-draws.mjs   당첨번호 JSON 갱신
 legacy/                    React 이전 버전
 ```
+
+## 라이선스
+
+[MIT](LICENSE). 당첨번호 데이터의 출처는 동행복권이며, 이 프로젝트는 동행복권과 관련이 없습니다.
