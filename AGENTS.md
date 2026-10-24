@@ -54,7 +54,13 @@ legacy/        React 이전 단일 페이지 버전. .gitignore 대상 (로컬�
 - 데이터 원본: `public/data/draws.json` = `{ latest, draws: Row[] }`, 회차 오름차순.
   `Row = [회차, "YYYY-MM-DD", n1..n6, 보너스, 1등 당첨자 수, 1등 1인당 당첨금, 2등 당첨자 수, 2등 1인당 당첨금]`.
   형식을 바꾸면 `scripts/update-draws.mjs`(`ROW_LENGTH`) 와 `src/lotto/draws.ts` 를 함께 고친다. 스크립트는 칸 수가 `ROW_LENGTH` 와 다른 줄을 다시 받는다.
-- 앱은 JSON 다음 회차만 API 로 받아 `localStorage["lottoDrawsExtra"]` 에 보관한다. 재확인 간격 30분 (`lottoDrawsCheckedAt`).
+- **동행복권 서버에 부하를 주지 않는다 (가장 중요한 원칙).**
+  - 당첨번호는 CI 빌드(`npm run update-draws`)만 받는다: push 때, 토 22:00 KST, 일 09:00 KST. 빌드 한 번에 1~2회 호출.
+  - 방문자 브라우저는 평소 API 를 부르지 않는다. 방문자 수만큼 요청이 늘어나는 구조를 만들지 말 것.
+  - 예외: JSON 이 2회차 이상 뒤처졌을 때(자동 빌드가 일주일 넘게 실패)만 브라우저당 하루 한 번 비상 조회 →
+    `localStorage["lottoDrawsExtra"]`. 확인 시각(`lottoDrawsCheckedAt`)은 요청 **전에** 기록한다 (동시 호출·실패 재시도 방지).
+  - 스크립트로 전체를 새로 받을 때는 호출 사이 1초 간격 (`DELAY_MS`). 전체 재수집은 꼭 필요할 때만.
+- 추첨 직후엔 번호만 있고 당첨자·당첨금이 0 이다. 최근 30일 안에 그런 회차는 `isPending` — 화면엔 "집계 중", 스크립트는 다시 받는다.
 - API: `https://www.dhlottery.co.kr/lt645/selectPstLt645InfoNew.do` — 동행복권 결과 페이지 내부용, 공식 공개 API 아님.
   - 예전 `common.do?method=getLottoNumber` 는 홈으로 302 리다이렉트되어 더 이상 못 쓴다.
   - 응답의 `Access-Control-Allow-Origin` 이 요청 Origin 을 그대로 돌려주므로 브라우저에서 직접 호출 가능.
@@ -91,7 +97,7 @@ localStorage 접근은 항상 `readStored` / `writeStored` (예외 허용) 를 �
 
 ## 배포
 
-GitHub Pages: https://dunkul.github.io/ssing-archery-lotto/ — `.github/workflows/deploy.yml` 이 main push·매주 토요일 22:00 KST·수동 실행 때 배포.
+GitHub Pages: https://dunkul.github.io/ssing-archery-lotto/ — `.github/workflows/deploy.yml` 이 main push·토 22:00/일 09:00 KST·수동 실행 때 배포.
 `file://` 로 열면 동작하지 않는다 (ES 모듈·서비스워커).
 PWA 는 `registerType: "autoUpdate"` — 새 빌드를 올리면 다음 방문 때 자동 교체된다.
 

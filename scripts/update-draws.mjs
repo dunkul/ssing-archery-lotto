@@ -9,7 +9,8 @@ const OUT = path.join(ROOT, "public", "data", "draws.json");
 const API = "https://www.dhlottery.co.kr/lt645/selectPstLt645InfoNew.do";
 const FIRST_DRAW = Date.UTC(2002, 11, 7, 11, 45); // 1회 추첨: 2002-12-07 20:45 KST
 const WEEK = 7 * 24 * 3600 * 1000;
-const DELAY_MS = 150;
+// 빈 파일에서 전체를 받을 때(약 125회 호출)만 의미가 있다. 평소 빌드는 1~2회 호출로 끝난다
+const DELAY_MS = 1000;
 const DAY = 24 * 3600 * 1000;
 
 /** 추첨 직후엔 번호만 나오고 당첨자·당첨금은 0 이다. 최근 30일 안에 그런 줄은 집계 중으로 보고 다시 받는다

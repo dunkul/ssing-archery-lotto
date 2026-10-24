@@ -1,5 +1,6 @@
-// 당첨번호 불러오기: 빌드 때 저장한 data/draws.json 을 먼저 쓰고,
-// 그 뒤에 나온 회차만 동행복권 API 로 한 번 받아 localStorage 에 보관한다.
+// 당첨번호 불러오기: 빌드(CI) 때 저장한 data/draws.json 만 쓴다.
+// 동행복권 서버에 부하를 주지 않도록 방문자 브라우저는 평소 API 를 부르지 않는다.
+// JSON 이 2회차 이상 뒤처졌을 때(= 자동 빌드가 일주일 넘게 실패)만 브라우저당 하루 한 번 비상으로 받아 온다.
 import { readStored, writeStored } from "../storage";
 
 export interface Draw {
@@ -37,7 +38,9 @@ interface ApiItem {
 const API = "https://www.dhlottery.co.kr/lt645/selectPstLt645InfoNew.do";
 const EXTRA_KEY = "lottoDrawsExtra";
 const CHECKED_KEY = "lottoDrawsCheckedAt";
-const RECHECK_MS = 30 * 60 * 1000;
+/** 비상 조회: 이만큼 회차가 뒤처졌을 때만, 브라우저당 이 간격으로 */
+const EMERGENCY_LAG = 2;
+const RECHECK_MS = 24 * 3600 * 1000;
 
 const FIRST_DRAW = Date.UTC(2002, 11, 7, 11, 45); // 1회 추첨: 2002-12-07 20:45 KST
 const WEEK = 7 * 24 * 3600 * 1000;
@@ -106,18 +109,17 @@ export async function loadDraws(): Promise<DrawsResult> {
   const expected = expectedLatestRound();
   const checkedAt = readStored<number>(CHECKED_KEY, 0);
 
-  // 새 회차가 나왔을 시간이거나, 최신 회차 당첨금이 아직 집계 중이면 API 로 다시 확인
-  const pending = isPending(draws.get(latest)!);
-  if ((expected > latest || pending) && Date.now() - checkedAt > RECHECK_MS) {
+  // 집계 중인 당첨금이나 한 회차 뒤처진 것은 다음 자동 빌드가 채운다. 여기서는 비상시에만 부른다
+  if (expected - latest >= EMERGENCY_LAG && Date.now() - checkedAt > RECHECK_MS) {
+    // 응답 전에 먼저 기록: 동시에 여러 번 불리거나 실패해도 하루 한 번을 넘지 않게
+    writeStored(CHECKED_KEY, Date.now());
     try {
       // center 조회는 요청 회차보다 3~4회 뒤까지 함께 돌려준다
-      const from = pending ? latest : latest + 1;
+      const from = latest + 1;
       const fresh = (await fetchFromApi(from)).filter((d) => d.round >= from);
-      writeStored(CHECKED_KEY, Date.now());
       if (fresh.length) {
         for (const d of fresh) draws.set(d.round, d);
-        // JSON 에 완성된 상태로 있는 회차만 빼고 보관 (집계 중이던 회차의 완성본은 보관해야 다시 안 부른다)
-        const known = new Set(json.draws.map(fromRow).filter((d) => !isPending(d)).map((d) => d.round));
+        const known = new Set(json.draws.map((r) => r[0]));
         writeStored(
           EXTRA_KEY,
           [...draws.values()].filter((d) => !known.has(d.round)),

@@ -5,8 +5,10 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  # 방문자 브라우저는 동행복권 API 를 부르지 않으므로 새 회차는 이 예약 빌드로만 들어온다
   schedule:
-    - cron: "0 13 * * 6" # 토 22:00 KST (추첨 20:45 KST)
+    - cron: "0 13 * * 6" # 토 22:00 KST (추첨 20:45 KST) — 새 회차 번호
+    - cron: "0 0 * * 0" # 일 09:00 KST — 토요일엔 집계 중이던 당첨금 채우기
   workflow_dispatch:
 
 permissions:

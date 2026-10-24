@@ -40,7 +40,7 @@ npm run preview    # 빌드 결과 확인 (http://localhost:4173)
 ## 배포 (GitHub Pages)
 
 `.github/workflows/deploy.yml` 이 `main` 에 push 할 때마다 빌드해서 GitHub Pages 에 올린다.
-매주 토요일 22:00(KST)에도 다시 빌드해 새 회차 당첨번호를 넣는다. Actions 탭에서 수동 실행도 가능.
+매주 토요일 22:00(새 회차 번호)와 일요일 09:00(KST, 집계된 당첨금)에도 다시 빌드한다. Actions 탭에서 수동 실행도 가능.
 
 - 사이트가 `/<저장소 이름>/` 하위 경로에서 열리므로 CI 는 `--base=/<저장소 이름>/` 로 빌드한다.
 - 저장소 Settings → Pages → Source 를 **GitHub Actions** 로 설정해야 한다.
@@ -48,7 +48,8 @@ npm run preview    # 빌드 결과 확인 (http://localhost:4173)
 ## 당첨번호 데이터
 
 - `public/data/draws.json` 에 전체 회차가 저장돼 있다. `npm run update-draws` 는 없는 회차만 받아 추가하며, `npm run build` 때 자동으로 실행된다.
-- 앱은 이 파일을 먼저 읽고, 그 뒤에 나온 회차만 동행복권 API 를 브라우저에서 직접 한 번 호출해 `localStorage` 에 보관한다.
+- 동행복권 서버에 부하를 주지 않도록 당첨번호는 빌드 때만 받는다 (빌드 한 번에 1~2회 호출). 방문자 브라우저는 평소 API 를 부르지 않고,
+  자동 빌드가 일주일 넘게 실패해 데이터가 2회차 이상 뒤처졌을 때만 브라우저당 하루 한 번 받아 온다.
 - 사용하는 API(`/lt645/selectPstLt645InfoNew.do`)는 공식 공개 API 가 아니라 결과 페이지 내부용이라 바뀔 수 있다.
 
 ## 구조

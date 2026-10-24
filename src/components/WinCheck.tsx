@@ -60,7 +60,7 @@ export function WinCheck({ data, error, round, onRound }: Props) {
         </>
       )}
       {data?.stale && round === data.latest && (
-        <p className="note">제{expectedLatestRound()}회 결과는 아직 받아오지 못했어요. 잠시 후 다시 열어 보세요.</p>
+        <p className="note">제{expectedLatestRound()}회 결과는 곧 업데이트돼요.</p>
       )}
     </section>
   );
