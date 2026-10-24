@@ -91,5 +91,12 @@ localStorage 접근은 항상 `readStored` / `writeStored` (예외 허용) 를 �
 
 ## 배포
 
-`dist/` 를 정적 호스팅에 올린다. `file://` 로 열면 동작하지 않는다 (ES 모듈·서비스워커).
+GitHub Pages: https://dunkul.github.io/ssing-archery-lotto/ — `.github/workflows/deploy.yml` 이 main push·매주 토요일 22:00 KST·수동 실행 때 배포.
+`file://` 로 열면 동작하지 않는다 (ES 모듈·서비스워커).
 PWA 는 `registerType: "autoUpdate"` — 새 빌드를 올리면 다음 방문 때 자동 교체된다.
+
+하위 경로(`/ssing-archery-lotto/`)에서 서비스되므로:
+- 경로를 `/` 로 시작하는 절대 경로로 하드코딩하지 말 것. 런타임 fetch 는 `import.meta.env.BASE_URL` 을 붙이고,
+  manifest 는 상대 경로(`start_url: "./"`), `index.html` 의 `/icons/...` 는 Vite 가 빌드 때 base 를 붙여 준다.
+- 로컬에서 하위 경로 빌드를 확인할 때 Git Bash 는 `--base=/x/` 인자를 Windows 경로로 바꿔 버리니
+  `MSYS_NO_PATHCONV=1 npx vite build --base=/ssing-archery-lotto/` 로 실행한다.

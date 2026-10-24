@@ -2,6 +2,8 @@
 
 궁수가 풍선을 맞히면 안에 숨은 로또공이 굴러 나오는 로또 번호 뽑기 게임. Vite + React + TypeScript.
 
+**▶ 플레이: https://dunkul.github.io/ssing-archery-lotto/**
+
 ![직접 조준 중인 낮 화면](docs/screenshots/play-day.webp)
 
 <table>
@@ -34,6 +36,14 @@ npm run preview    # 빌드 결과 확인 (http://localhost:4173)
 ```
 
 `dist/` 는 정적 파일이라 아무 웹 호스팅에 올리면 된다. 단, `file://` 로 더블클릭해서 열면 동작하지 않는다 (ES 모듈·서비스워커 제한).
+
+## 배포 (GitHub Pages)
+
+`.github/workflows/deploy.yml` 이 `main` 에 push 할 때마다 빌드해서 GitHub Pages 에 올린다.
+매주 토요일 22:00(KST)에도 다시 빌드해 새 회차 당첨번호를 넣는다. Actions 탭에서 수동 실행도 가능.
+
+- 사이트가 `/<저장소 이름>/` 하위 경로에서 열리므로 CI 는 `--base=/<저장소 이름>/` 로 빌드한다.
+- 저장소 Settings → Pages → Source 를 **GitHub Actions** 로 설정해야 한다.
 
 ## 당첨번호 데이터
 

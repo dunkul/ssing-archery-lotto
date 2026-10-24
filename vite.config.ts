@@ -17,7 +17,9 @@ export default defineConfig({
         short_name: "활쏘기 로또",
         description: "궁수가 풍선을 맞히면 로또공이 굴러 나오는 로또 번호 뽑기 게임",
         lang: "ko",
-        start_url: "/",
+        // 하위 경로(GitHub Pages)에서도 동작하도록 manifest 위치 기준 상대 경로
+        start_url: "./",
+        scope: "./",
         display: "standalone",
         orientation: "portrait",
         background_color: "#bfe3f7",
