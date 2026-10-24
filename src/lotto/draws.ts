@@ -1,0 +1,121 @@
+// 당첨번호 불러오기: 빌드 때 저장한 data/draws.json 을 먼저 쓰고,
+// 그 뒤에 나온 회차만 동행복권 API 로 한 번 받아 localStorage 에 보관한다.
+import { readStored, writeStored } from "../storage";
+
+export interface Draw {
+  round: number;
+  date: string;
+  numbers: number[];
+  bonus: number;
+  firstWinners: number;
+  firstPrize: number;
+  secondWinners: number;
+  secondPrize: number;
+}
+
+/** draws.json 한 줄: [회차, 추첨일, 번호1..6, 보너스, 1등 당첨자 수, 1등 1인당 당첨금, 2등 당첨자 수, 2등 1인당 당첨금] */
+type Row = [number, string, number, number, number, number, number, number, number, number, number, number, number];
+
+interface ApiItem {
+  ltEpsd: number;
+  ltRflYmd: string | number;
+  tm1WnNo: number;
+  tm2WnNo: number;
+  tm3WnNo: number;
+  tm4WnNo: number;
+  tm5WnNo: number;
+  tm6WnNo: number;
+  bnsWnNo: number;
+  rnk1WnNope: number;
+  rnk1WnAmt: number;
+  rnk2WnNope: number;
+  rnk2WnAmt: number;
+}
+
+// 동행복권 결과 페이지가 쓰는 엔드포인트. 요청한 Origin 을 허용해 주므로 브라우저에서 바로 부를 수 있다.
+// 단, 헤더를 추가하면 preflight 요청이 400 으로 거절되니 기본 GET 그대로 호출해야 한다.
+const API = "https://www.dhlottery.co.kr/lt645/selectPstLt645InfoNew.do";
+const EXTRA_KEY = "lottoDrawsExtra";
+const CHECKED_KEY = "lottoDrawsCheckedAt";
+const RECHECK_MS = 30 * 60 * 1000;
+
+const FIRST_DRAW = Date.UTC(2002, 11, 7, 11, 45); // 1회 추첨: 2002-12-07 20:45 KST
+const WEEK = 7 * 24 * 3600 * 1000;
+/** 추첨 후 결과가 올라오기까지 여유 시간 */
+const PUBLISH_DELAY = 30 * 60 * 1000;
+
+/** 지금 시점에 결과가 나와 있어야 할 마지막 회차 */
+export const expectedLatestRound = (now = Date.now()) => Math.floor((now - FIRST_DRAW - PUBLISH_DELAY) / WEEK) + 1;
+
+const fromRow = (r: Row): Draw => ({
+  round: r[0],
+  date: r[1],
+  numbers: r.slice(2, 8) as number[],
+  bonus: r[8],
+  firstWinners: r[9],
+  firstPrize: r[10],
+  secondWinners: r[11],
+  secondPrize: r[12],
+});
+
+const fromApi = (x: ApiItem): Draw => {
+  const d = String(x.ltRflYmd);
+  return {
+    round: x.ltEpsd,
+    date: `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`,
+    numbers: [x.tm1WnNo, x.tm2WnNo, x.tm3WnNo, x.tm4WnNo, x.tm5WnNo, x.tm6WnNo],
+    bonus: x.bnsWnNo,
+    firstWinners: x.rnk1WnNope,
+    firstPrize: x.rnk1WnAmt,
+    secondWinners: x.rnk2WnNope,
+    secondPrize: x.rnk2WnAmt,
+  };
+};
+
+async function fetchFromApi(aroundRound: number): Promise<Draw[]> {
+  const res = await fetch(`${API}?srchDir=center&srchLtEpsd=${aroundRound}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const list: ApiItem[] = (await res.json())?.data?.list ?? [];
+  return list.map(fromApi);
+}
+
+export interface DrawsResult {
+  /** 회차 → 당첨번호 */
+  draws: Map<number, Draw>;
+  latest: number;
+  /** 최신 회차를 받아오려 했지만 실패했을 때 */
+  stale: boolean;
+}
+
+export async function loadDraws(): Promise<DrawsResult> {
+  const draws = new Map<number, Draw>();
+  const res = await fetch(`${import.meta.env.BASE_URL}data/draws.json`);
+  const json: { draws: Row[] } = await res.json();
+  for (const r of json.draws) draws.set(r[0], fromRow(r));
+  for (const d of readStored<Draw[]>(EXTRA_KEY, [])) draws.set(d.round, d);
+
+  let latest = Math.max(...draws.keys());
+  let stale = false;
+  const expected = expectedLatestRound();
+  const checkedAt = readStored<number>(CHECKED_KEY, 0);
+
+  if (expected > latest && Date.now() - checkedAt > RECHECK_MS) {
+    try {
+      // center 조회는 요청 회차보다 3~4회 뒤까지 함께 돌려준다
+      const fresh = (await fetchFromApi(latest + 1)).filter((d) => d.round > latest);
+      writeStored(CHECKED_KEY, Date.now());
+      if (fresh.length) {
+        for (const d of fresh) draws.set(d.round, d);
+        const known = new Set(json.draws.map((r) => r[0]));
+        writeStored(
+          EXTRA_KEY,
+          [...draws.values()].filter((d) => !known.has(d.round)),
+        );
+        latest = Math.max(...draws.keys());
+      }
+    } catch {
+      stale = true;
+    }
+  }
+  return { draws, latest, stale: stale || expected > latest };
+}

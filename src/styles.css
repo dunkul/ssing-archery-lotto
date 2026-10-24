@@ -1,0 +1,637 @@
+/* 무대(캔버스)가 위, 번호판·당첨 확인·지난 게임이 아래. 낮/밤 테마는 html[data-theme] 로 바꾼다 */
+
+:root {
+  --paper: #fdfbf4;
+  --ink: #1f2b45;
+  --coral: #ff5d3d;
+  --line: #d9dcd0;
+  --text: var(--ink);
+  --muted: #5d6782;
+  --page-bg: linear-gradient(180deg, #bfe3f7 0%, #e6f4fb 60%, #f3f8f2 100%);
+  --page-base: #cfe9f8;
+  --row-bg: rgba(255, 255, 255, 0.7);
+  --frame: var(--ink);
+  --f-display: "Black Han Sans", "Jua", system-ui, sans-serif;
+  --f-body: "Gowun Dodum", system-ui, sans-serif;
+  --f-num: "Jua", system-ui, sans-serif;
+  color-scheme: light;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+:root[data-theme="night"] {
+  --text: #eef2ff;
+  --muted: #aab4d6;
+  --page-bg: linear-gradient(180deg, #0b1638 0%, #1c2756 60%, #26345f 100%);
+  --page-base: #0b1638;
+  --row-bg: rgba(255, 255, 255, 0.08);
+  --frame: #f3e9c6;
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+html {
+  background: var(--page-base);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--f-body);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text);
+  background: var(--page-bg);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px;
+  transition: color 0.3s;
+}
+
+.wrap {
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---------- 머리말 ---------- */
+header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+h1 {
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: clamp(28px, 6vw, 44px);
+  line-height: 1;
+  margin: 0;
+  letter-spacing: -0.5px;
+  text-wrap: balance;
+}
+
+h1 span {
+  color: var(--coral);
+}
+
+.sub {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+
+.round {
+  font-family: var(--f-num);
+  background: var(--ink);
+  color: #fff;
+  border: 2px solid var(--frame);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+/* ---------- 무대 ---------- */
+.stage {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 3px solid var(--frame);
+  box-shadow: 0 6px 0 var(--frame);
+  background: #7fc8f5;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 800 / 480;
+  max-width: 100%;
+  /* 캔버스 위에서 끌어 조준하므로 스크롤·확대 제스처를 막는다 */
+  touch-action: none;
+  cursor: crosshair;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.hint {
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  font-family: var(--f-num);
+  font-size: 13px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 8px;
+  padding: 3px 9px;
+  color: var(--ink);
+  pointer-events: none;
+}
+
+@media (max-width: 520px) {
+  .hint {
+    display: none;
+  }
+}
+
+/* ---------- 버튼 ---------- */
+.controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+button {
+  font-family: var(--f-num);
+  font-size: 18px;
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  padding: 10px 18px;
+  cursor: pointer;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 4px 0 var(--ink);
+  transition:
+    transform 0.08s,
+    box-shadow 0.08s;
+}
+
+button:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--ink);
+}
+
+button:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--coral);
+  outline-offset: 3px;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.fire {
+  background: var(--coral);
+  color: #fff;
+  flex: 1 1 180px;
+}
+
+.auto {
+  background: #ffd23f;
+}
+
+.opts {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.tog {
+  font-size: 15px;
+  padding: 8px 12px;
+  box-shadow: 0 3px 0 var(--ink);
+  border-width: 2px;
+}
+
+.tog[aria-pressed="false"] {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.tog.theme {
+  min-width: 76px;
+}
+
+@media (max-width: 520px) {
+  .opts {
+    margin-left: 0;
+    width: 100%;
+  }
+  .opts .tog {
+    flex: 1;
+  }
+}
+
+button.small {
+  font-size: 14px;
+  padding: 5px 12px;
+  box-shadow: 0 3px 0 var(--ink);
+  border-width: 2px;
+}
+
+/* ---------- 카드 (번호판, 당첨 확인) ---------- */
+.card {
+  background: var(--paper);
+  color: var(--ink);
+  --muted: #5d6782;
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card h2,
+.hist h2 {
+  font-family: var(--f-num);
+  font-weight: 400;
+  font-size: 18px;
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hist h2 small {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.note {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* ---------- 로또공 ---------- */
+.balls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.b {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: none;
+  font-family: var(--f-num);
+  font-size: 19px;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  font-variant-numeric: tabular-nums;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.75) 0 12%, transparent 35%),
+    var(--c);
+  box-shadow: inset -3px -4px 0 rgba(0, 0, 0, 0.15);
+}
+
+.b.empty {
+  background: none;
+  border: 2px dashed var(--line);
+  box-shadow: none;
+  color: var(--line);
+  text-shadow: none;
+}
+
+.b.pop {
+  animation: pop 0.35s ease-out;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.3);
+  }
+  70% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.plus {
+  font-family: var(--f-num);
+  font-size: 22px;
+  color: var(--muted);
+}
+
+.legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 5px;
+  vertical-align: -1px;
+}
+
+.toast {
+  min-height: 1.4em;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* ---------- 결과 코멘트 ---------- */
+.chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chips li {
+  font-size: 13px;
+  background: #fff3c4;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 2px 10px;
+  animation: pop 0.35s ease-out both;
+}
+
+.chips li:nth-child(2) { animation-delay: 0.08s; }
+.chips li:nth-child(3) { animation-delay: 0.16s; }
+.chips li:nth-child(4) { animation-delay: 0.24s; }
+.chips li:nth-child(5) { animation-delay: 0.32s; }
+.chips li:nth-child(n + 6) { animation-delay: 0.4s; }
+
+/* ---------- 당첨 번호 확인 ---------- */
+.round-nav {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.round-nav select {
+  font-family: var(--f-num);
+  font-size: 15px;
+  color: var(--ink);
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 4px 8px;
+}
+
+.round-nav button.small {
+  padding: 4px 9px;
+}
+
+/* ---------- 지난 게임 ---------- */
+.hist {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hist ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hist li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: var(--row-bg);
+  border-radius: 10px;
+  padding: 6px 10px;
+}
+
+.hist li .b {
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+}
+
+.hist .k {
+  font-family: var(--f-num);
+  color: var(--muted);
+  min-width: 42px;
+  font-size: 14px;
+}
+
+.b.hit {
+  outline: 3px solid var(--coral);
+  outline-offset: 2px;
+}
+
+.b.hit-bonus {
+  outline: 3px dashed var(--coral);
+  outline-offset: 2px;
+}
+
+.b.miss {
+  opacity: 0.35;
+}
+
+.rank {
+  margin-left: auto;
+  font-family: var(--f-num);
+  font-size: 14px;
+  border-radius: 999px;
+  padding: 2px 10px;
+  background: var(--row-bg);
+  color: var(--muted);
+}
+
+.rank.r1,
+.rank.r2,
+.rank.r3 {
+  background: var(--coral);
+  color: #fff;
+}
+
+.rank.r4,
+.rank.r5 {
+  background: #ffd23f;
+  color: var(--ink);
+}
+
+.credit {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+}
+
+/* ---------- 역대 1·2등 ---------- */
+.trophy {
+  margin-left: auto;
+  font-family: var(--f-num);
+  font-size: 14px;
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 2px 10px;
+  background: linear-gradient(135deg, #fff3b0, #ffd700 50%, #ffb800);
+  box-shadow: 0 0 0 2px var(--ink);
+}
+
+.trophy + .rank {
+  margin-left: 0;
+}
+
+.hist li.jackpot-row {
+  box-shadow: 0 0 0 2px #ffd700, 0 0 16px rgba(255, 215, 0, 0.55);
+  animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+  50% {
+    box-shadow: 0 0 0 2px #ffd700, 0 0 28px rgba(255, 215, 0, 0.9);
+  }
+}
+
+.jackpot {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  overflow: hidden;
+  background: rgba(15, 20, 45, 0.72);
+  animation: fade-in 0.3s ease-out;
+}
+
+/* 회전하는 금빛 빛줄기 */
+.jackpot-rays {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 180vmax;
+  height: 180vmax;
+  margin: -90vmax 0 0 -90vmax;
+  background: repeating-conic-gradient(rgba(255, 215, 0, 0.3) 0deg 10deg, transparent 10deg 24deg);
+  mask-image: radial-gradient(circle, #000 0%, transparent 22%);
+  -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 22%);
+  animation: spin 18s linear infinite;
+  pointer-events: none;
+}
+
+.jackpot-card {
+  position: relative;
+  width: min(440px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  color: var(--ink);
+  --muted: #5d6782;
+  background: linear-gradient(180deg, #fffdf2, #fff3c4);
+  border: 4px solid var(--ink);
+  border-radius: 22px;
+  box-shadow: 0 8px 0 var(--ink), 0 0 60px rgba(255, 215, 0, 0.8);
+  padding: 24px 20px 20px;
+  animation: jackpot-pop 0.6s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+.jackpot-card p {
+  margin: 0;
+}
+
+.jackpot-kicker {
+  font-family: var(--f-num);
+  color: var(--coral);
+  font-size: 16px;
+}
+
+.jackpot-card h2 {
+  margin: 0;
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: clamp(34px, 9vw, 52px);
+  line-height: 1.1;
+}
+
+.jackpot-card h2 em {
+  font-style: normal;
+  background: linear-gradient(90deg, #e09a00, #ffd700, #fff7c2, #ffd700, #e09a00);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--ink);
+  animation: shimmer 1.6s linear infinite;
+}
+
+.jackpot-card .balls {
+  justify-content: center;
+}
+
+.jackpot-prize {
+  font-size: 16px;
+}
+
+.jackpot-prize strong {
+  font-family: var(--f-num);
+  font-weight: 400;
+  font-size: 24px;
+  color: var(--coral);
+}
+
+.jackpot-card .fire {
+  flex: none;
+  width: 100%;
+}
+
+@keyframes jackpot-pop {
+  0% {
+    transform: scale(0.4) rotate(-6deg);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) rotate(0);
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .b.pop,
+  .chips li,
+  .hist li.jackpot-row,
+  .jackpot,
+  .jackpot-rays,
+  .jackpot-card,
+  .jackpot-card h2 em {
+    animation: none;
+  }
+}

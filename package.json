@@ -1,0 +1,26 @@
+{
+  "name": "ssing-archery-lotto",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "씽씽 활쏘기 로또 — 궁수가 풍선을 쏘면 로또 번호가 굴러 나오는 웹 게임",
+  "scripts": {
+    "dev": "vite",
+    "update-draws": "node scripts/update-draws.mjs",
+    "prebuild": "npm run update-draws",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "vite-plugin-pwa": "^2.0.0"
+  }
+}
