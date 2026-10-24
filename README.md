@@ -37,7 +37,7 @@ src/
 ├── components/    Stage, Controls, Ticket, WinCheck, History, Ball
 └── App.tsx
 scripts/update-draws.mjs   당첨번호 JSON 갱신
-legacy/                    React 이전 버전
+legacy/                    React 이전 버전 (로컬 보관용, git 에는 올리지 않음)
 ```
 
 ## 라이선스

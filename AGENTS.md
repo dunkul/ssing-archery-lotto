@@ -30,7 +30,7 @@ src/lotto/     당첨번호 데이터 (draws.ts), 등수 (rank.ts), 결과 코�
 src/components React UI: Stage(캔버스+루프+포인터), Controls, Ticket, WinCheck, History, Ball
 src/App.tsx    상태 연결: Game/SoundSystem 생성, localStorage 설정, 당첨번호 로딩
 scripts/update-draws.mjs   빌드 시 당첨번호 JSON 갱신 (Node)
-legacy/        React 이전 단일 페이지 버전. 참고용, 수정하지 않는다.
+legacy/        React 이전 단일 페이지 버전. .gitignore 대상 (로컬에만 있을 수 있음). 수정하지 않는다.
 ```
 
 ### 게임 ↔ React 데이터 흐름
